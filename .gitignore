@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+
+# YOLO/Ultralytics outputs
+runs/
+
+# Data (keep structure, ignore contents)
+data/**/images/**
+data/**/labels/**
+data/**/cache/**
+data/**/*.pt
+data/**/*.pth
+
+# Local weights
+weights/
+

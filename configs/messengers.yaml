@@ -1,0 +1,12 @@
+# Ultralytics YOLO dataset config (detection)
+path: data/messengers
+train: images/train
+val: images/val
+
+names:
+  0: slack
+  1: whatsapp
+  2: telegram
+  3: discord
+  4: teams
+
