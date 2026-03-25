@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScreenFilter Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: rgba(0, 0, 0, 0.05);
+            --terminal-bg: #0f172a;
+            --terminal-text: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #4f46e5, #db2777);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1e1b4b;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.625rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 0.5rem;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .terminal {
+            background: var(--terminal-bg);
+            color: var(--terminal-text);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.875rem;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-idle { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        .status-running { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+        .status-success { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+        .status-error { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8fafc;
+        }
+
+        .modal-footer {
+            padding: 1.25rem;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: #ffffff;
+            border-bottom-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.25rem;
+            border: 1px solid transparent;
+            color: #334155;
+        }
+
+        .file-item:hover {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .file-item.selected {
+            background: #eef2ff;
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .file-icon {
+            font-size: 1.25rem;
+        }
+
+        .path-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .browse-btn {
+            width: auto;
+            white-space: nowrap;
+            padding: 0 1rem;
+            margin-top: 0;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .browse-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .current-path-display {
+            font-size: 0.8125rem;
+            color: #64748b;
+            word-break: break-all;
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-family: monospace;
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 1rem; }
+            h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ScreenFilter</h1>
+            <p style="color: var(--text-muted)">YOLOv8-based Screenshot Collector</p>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Train Card -->
+            <div class="card">
+                <h2>Train</h2>
+                <div class="form-group">
+                    <label>Data YAML</label>
+                    <div class="path-input-group">
+                        <input type="text" id="train-data" placeholder="configs/messengers.yaml">
+                        <button class="browse-btn" onclick="openFileBrowser('train-data')">Browse</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Model/Weights</label>
+                    <div class="path-input-group">
+                        <input type="text" id="train-model" placeholder="yolov8n.pt">
+                        <button class="browse-btn" onclick="openFileBrowser('train-model')">Browse</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Epochs</label>
+                    <input type="number" id="train-epochs" value="50">
+                </div>
+                <button onclick="runCommand('train')">Run Train</button>
+            </div>
+
+            <!-- Predict Card -->
+            <div class="card">
+                <h2>Predict</h2>
+                <div class="form-group">
+                    <label>Model Path</label>
+                    <div class="path-input-group">
+                        <input type="text" id="predict-model" placeholder="runs/detect/train/weights/best.pt">
+                        <button class="browse-btn" onclick="openFileBrowser('predict-model')">Browse</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Source (Folder/File)</label>
+                    <div class="path-input-group">
+                        <input type="text" id="predict-source" placeholder="data/images">
+                        <button class="browse-btn" onclick="openFileBrowser('predict-source')">Browse</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Confidence Threshold</label>
+                    <input type="number" id="predict-conf" value="0.25" step="0.05" min="0" max="1">
+                </div>
+                <button onclick="runCommand('predict')">Run Predict</button>
+            </div>
+
+            <!-- Collect Card -->
+            <div class="card">
+                <h2>Collect</h2>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="collect-multi-mode" onchange="toggleCollectMode()"> Multi-Directory Mode
+                    </label>
+                </div>
+
+                <!-- Single Directory Fields -->
+                <div id="collect-single-fields">
+                    <div class="form-group">
+                        <label>Source Path</label>
+                        <div class="path-input-group">
+                            <input type="text" id="collect-source" placeholder="data/images">
+                            <button class="browse-btn" onclick="openFileBrowser('collect-source')">Browse</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Output Path</label>
+                        <div class="path-input-group">
+                            <input type="text" id="collect-out" placeholder="data/collected">
+                            <button class="browse-btn" onclick="openFileBrowser('collect-out')">Browse</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Directory Fields -->
+                <div id="collect-multi-fields" style="display: none;">
+                    <div class="form-group">
+                        <label>Source Base Directory</label>
+                        <div class="path-input-group">
+                            <input type="text" id="collect-src-base" placeholder="/path/to/src/base">
+                            <button class="browse-btn" onclick="openFileBrowser('collect-src-base')">Browse</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination Base Directory</label>
+                        <div class="path-input-group">
+                            <input type="text" id="collect-dst-base" placeholder="/path/to/dst/base">
+                            <button class="browse-btn" onclick="openFileBrowser('collect-dst-base')">Browse</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Matching Table ($Src:$Dst)</label>
+                        <textarea id="collect-map" rows="5" placeholder="30:20&#10;2:21" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-family: monospace; font-size: 0.8125rem;">30:20
+2:21
+10:22
+18:23
+17:24
+12:25
+7:26
+6:27
+13:28
+3:29
+26:30
+4:31
+11:32
+5:33
+9:34
+8:35
+15:36
+19:37
+16:38
+1:39
+31:40</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Specific Date (Optional)</label>
+                        <input type="date" id="collect-date">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Model Path</label>
+                    <div class="path-input-group">
+                        <input type="text" id="collect-model" placeholder="runs/detect/train/weights/best.pt">
+                        <button class="browse-btn" onclick="openFileBrowser('collect-model')">Browse</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confidence Threshold</label>
+                    <input type="number" id="collect-conf" value="0.25" step="0.05" min="0" max="1">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="collect-move"> Move files instead of copying
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="collect-verbose"> Verbose logging
+                    </label>
+                </div>
+
+                <button onclick="runCommand('collect')">Run Collect</button>
+            </div>
+        </div>
+
+        <div class="terminal-header">
+            <span>Terminal Output</span>
+            <span id="status" class="status-badge status-idle">Idle</span>
+        </div>
+        <div id="output" class="terminal">Ready to process commands...</div>
+    </div>
+
+    <!-- File Browser Modal -->
+    <div id="file-browser-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Select Path</h3>
+                <button class="browse-btn" onclick="closeFileBrowser()" style="width: auto; padding: 0.5rem;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div id="current-path" class="current-path-display"></div>
+                <div id="file-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="browse-btn" onclick="closeFileBrowser()">Cancel</button>
+                <button id="select-btn" onclick="selectCurrentPath()">Select Current Path</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTargetId = '';
+        let currentPath = '';
+        let selectedPath = '';
+
+        function openFileBrowser(targetId) {
+            currentTargetId = targetId;
+            const initialPath = document.getElementById(targetId).value || '';
+            document.getElementById('file-browser-modal').style.display = 'flex';
+            loadDir(initialPath);
+        }
+
+        function closeFileBrowser() {
+            document.getElementById('file-browser-modal').style.display = 'none';
+        }
+
+        async function loadDir(path) {
+            const fileListEl = document.getElementById('file-list');
+            const pathEl = document.getElementById('current-path');
+            fileListEl.innerHTML = '<p style="padding: 1rem; color: var(--text-muted)">Loading...</p>';
+
+            try {
+                const response = await fetch(`/ls?path=${encodeURIComponent(path)}`);
+                if (!response.ok) throw new Error('Failed to load directory');
+                const data = await response.json();
+
+                currentPath = data.current_path;
+                selectedPath = data.current_path;
+                pathEl.textContent = currentPath;
+                fileListEl.innerHTML = '';
+
+                data.items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.onclick = () => {
+                        if (item.is_dir) {
+                            loadDir(item.path);
+                        } else {
+                            // Select file
+                            const items = document.querySelectorAll('.file-item');
+                            items.forEach(el => el.classList.remove('selected'));
+                            div.classList.add('selected');
+                            selectedPath = item.path;
+                        }
+                    };
+                    
+                    const icon = document.createElement('span');
+                    icon.className = 'file-icon';
+                    icon.textContent = item.is_dir ? '📁' : '📄';
+                    
+                    const name = document.createElement('span');
+                    name.textContent = item.name;
+                    
+                    div.appendChild(icon);
+                    div.appendChild(name);
+                    fileListEl.appendChild(div);
+                });
+            } catch (err) {
+                fileListEl.innerHTML = `<p style="padding: 1rem; color: #ef4444">Error: ${err.message}</p>`;
+            }
+        }
+
+        function selectCurrentPath() {
+            if (currentTargetId) {
+                document.getElementById(currentTargetId).value = selectedPath;
+            }
+            closeFileBrowser();
+        }
+
+        function toggleCollectMode() {
+            const isMulti = document.getElementById('collect-multi-mode').checked;
+            document.getElementById('collect-single-fields').style.display = isMulti ? 'none' : 'block';
+            document.getElementById('collect-multi-fields').style.display = isMulti ? 'block' : 'none';
+        }
+
+        let activeTaskId = null;
+        let pollInterval = null;
+
+        async function runCommand(cmd) {
+            const outputEl = document.getElementById('output');
+            const statusEl = document.getElementById('status');
+            // Assuming the button structure is exactly like `<button onclick="runCommand('...')">...` 
+            // We can match it easily
+            const btn = document.querySelector(`[onclick="runCommand('${cmd}')"]`);
+            
+            if (activeTaskId) {
+                // If a task is running, user clicked "Stop"
+                try {
+                    await fetch(`/stop/${activeTaskId}`, { method: 'POST' });
+                    outputEl.textContent += '\n\nSent stop signal...';
+                } catch (err) {
+                    console.error("Failed to stop task:", err);
+                }
+                return;
+            }
+
+            const originalText = btn.textContent;
+            outputEl.textContent = `Starting ${cmd}...\n`;
+            statusEl.textContent = 'Starting';
+            statusEl.className = 'status-badge status-running';
+            btn.textContent = `Stop ${cmd}`;
+            btn.style.background = '#ef4444'; // red
+
+            let args = {};
+            if (cmd === 'train') {
+                args = {
+                    data: document.getElementById('train-data').value,
+                    model: document.getElementById('train-model').value,
+                    epochs: parseInt(document.getElementById('train-epochs').value)
+                };
+            } else if (cmd === 'predict') {
+                args = {
+                    model: document.getElementById('predict-model').value,
+                    source: document.getElementById('predict-source').value,
+                    conf: parseFloat(document.getElementById('predict-conf').value)
+                };
+            } else if (cmd === 'collect') {
+                const isMulti = document.getElementById('collect-multi-mode').checked;
+                args = {
+                    model: document.getElementById('collect-model').value,
+                    conf: parseFloat(document.getElementById('collect-conf').value),
+                    verbose: document.getElementById('collect-verbose').checked,
+                    move: document.getElementById('collect-move').checked
+                };
+                
+                if (isMulti) {
+                    args.src_base = document.getElementById('collect-src-base').value;
+                    args.dst_base = document.getElementById('collect-dst-base').value;
+                    args.map = document.getElementById('collect-map').value;
+                    const dateVal = document.getElementById('collect-date').value;
+                    if (dateVal) args.date = dateVal;
+                } else {
+                    args.source = document.getElementById('collect-source').value;
+                    args.out = document.getElementById('collect-out').value;
+                }
+            }
+
+            try {
+                const response = await fetch('/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd, args: args })
+                });
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || "Failed to start command");
+                }
+                
+                activeTaskId = data.task_id;
+                
+                pollInterval = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/status/${activeTaskId}`);
+                        const statusData = await res.json();
+                        
+                        outputEl.textContent = '';
+                        if (statusData.stdout) outputEl.textContent += statusData.stdout;
+                        if (statusData.stderr) outputEl.textContent += '\nERRORS:\n' + statusData.stderr;
+                        
+                        // Auto scroll to bottom
+                        outputEl.scrollTop = outputEl.scrollHeight;
+
+                        if (!statusData.running) {
+                            clearInterval(pollInterval);
+                            activeTaskId = null;
+                            btn.textContent = originalText;
+                            btn.style.background = ''; // reset to default
+                            
+                            if (statusData.success) {
+                                statusEl.textContent = 'Success';
+                                statusEl.className = 'status-badge status-success';
+                            } else {
+                                statusEl.textContent = 'Failed';
+                                statusEl.className = 'status-badge status-error';
+                            }
+                        }
+                    } catch (e) {
+                         console.error("Polling error:", e);
+                    }
+                }, 1000);
+
+            } catch (err) {
+                outputEl.textContent += `\nError: ${err.message}`;
+                statusEl.textContent = 'Error';
+                statusEl.className = 'status-badge status-error';
+                btn.textContent = originalText;
+                btn.style.background = '';
+                activeTaskId = null;
+            }
+        }
+    </script>
+</body>
+</html>

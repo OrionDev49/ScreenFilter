@@ -8,6 +8,13 @@ version = "0.1.0"
 description = "Offline YOLOv8-based screenshot collector for messenger apps."
 readme = "README.md"
 requires-python = ">=3.10,<3.12"
+dependencies = [
+    "ultralytics",
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+]
+
 
 [project.scripts]
 screenfilter = "screenfilter.cli:main"

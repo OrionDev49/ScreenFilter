@@ -83,8 +83,8 @@ screenfilter collect \
   --model runs/detect/train/weights/best.pt \
   --source /path/to/screenshot_folder \
   --out collected \
-  --conf 0.25
-```
+  --conf 0.25 --move
+
 
 ## Notes on offline usage
 - This uses the local `ultralytics` package (PyTorch). There is **no online inference service**.
