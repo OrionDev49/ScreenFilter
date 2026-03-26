@@ -109,8 +109,16 @@ async def run_command(request: CommandRequest):
         env["PYTHONUNBUFFERED"] = "1"
         
         # Start subprocess asynchronously
+        is_frozen = getattr(sys, 'frozen', False)
+        if is_frozen:
+            full_cmd_args = [sys.executable] + arg_list
+        else:
+            full_cmd_args = [sys.executable, "-m", "screenfilter"] + arg_list
+            
+        print(f"DEBUG: Running command: {' '.join(full_cmd_args)}")
+        
         process = await asyncio.create_subprocess_exec(
-            sys.executable, "-m", "screenfilter", *arg_list,
+            *full_cmd_args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=env

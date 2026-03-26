@@ -837,6 +837,12 @@
                             </div>
                         </div>
                     </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label><i data-lucide="calendar" class="w-4 h-4 text-slate-500"></i> Specific Date (Optional)</label>
+                            <input type="date" id="collect-date">
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>Mapping Table ($Src:$Dst)</label>
                         <textarea id="collect-map" rows="6" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">30:20
@@ -863,13 +869,19 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label><i data-lucide="file-key" class="w-4 h-4 text-rose-400"></i> Model Weights</label>
-                    <div class="input-group">
-                        <input type="text" id="collect-model" class="path-input" placeholder="runs/detect/train/weights/best.pt">
-                        <button class="browse-action" onclick="openFileBrowser('collect-model')">
-                            <i data-lucide="search" class="w-3 h-3"></i> Browse
-                        </button>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label><i data-lucide="file-key" class="w-4 h-4 text-rose-400"></i> Model Weights</label>
+                        <div class="input-group">
+                            <input type="text" id="collect-model" class="path-input" placeholder="runs/detect/train/weights/best.pt">
+                            <button class="browse-action" onclick="openFileBrowser('collect-model')">
+                                <i data-lucide="search" class="w-3 h-3"></i> Browse
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i data-lucide="target" class="w-4 h-4 text-rose-400"></i> Confidence</label>
+                        <input type="number" id="collect-conf" value="0.25" step="0.05" min="0" max="1">
                     </div>
                 </div>
 
@@ -881,6 +893,10 @@
                     <div class="checkbox-item">
                         <input type="checkbox" id="collect-resume" checked>
                         <label for="collect-resume">Resume (skip processed)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="collect-verbose">
+                        <label for="collect-verbose">Verbose logging</label>
                     </div>
                 </div>
 
@@ -1046,7 +1062,7 @@
             // Open terminal on start
             panel.classList.add('open');
             terminalBody.textContent = `>>> Initializing execution: ${cmd.toUpperCase()}\n`;
-            statusIndicator.parentElement.parentElement.classList.add('status-running'); // Fix selector logic
+            statusIndicator.classList.add('status-running'); 
             panel.dataset.status = 'running';
             panel.style.borderTopColor = 'var(--indigo-500)';
             
@@ -1077,12 +1093,17 @@
                 args = {
                     model: document.getElementById('collect-model').value,
                     move: document.getElementById('collect-move').checked,
-                    resume: document.getElementById('collect-resume').checked
+                    resume: document.getElementById('collect-resume').checked,
+                    verbose: document.getElementById('collect-verbose').checked,
+                    conf: parseFloat(document.getElementById('collect-conf').value),
                 };
+                
                 if (isMulti) {
                     args.src_base = document.getElementById('collect-src-base').value;
                     args.dst_base = document.getElementById('collect-dst-base').value;
                     args.map = document.getElementById('collect-map').value;
+                    const dateVal = document.getElementById('collect-date').value;
+                    if (dateVal) args.date = dateVal;
                 } else {
                     args.source = document.getElementById('collect-source').value;
                     args.out = document.getElementById('collect-out').value;
