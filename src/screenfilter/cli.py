@@ -4,6 +4,7 @@ import argparse
 import json
 import re
 import shutil
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -38,241 +39,261 @@ def _get_processed_paths(log_path: Path) -> set[str]:
 
 
 def cmd_train(args: argparse.Namespace) -> int:
-    from ultralytics import YOLO  # type: ignore
+    try:
+        from ultralytics import YOLO  # type: ignore
 
-    model = YOLO(str(args.model))
-    train_kwargs = dict(
-        data=str(args.data),
-        epochs=args.epochs,
-        patience=args.patience,
-        imgsz=args.imgsz,
-        batch=args.batch,
-        weight_decay=args.weight_decay,
-        device=args.device,
-        project=args.project,
-        name=args.name,
-    )
-    if args.resume:
-        train_kwargs["resume"] = True
-    model.train(**train_kwargs)
-    return 0
+        model = YOLO(str(args.model))
+        train_kwargs = dict(
+            data=str(args.data),
+            epochs=args.epochs,
+            patience=args.patience,
+            imgsz=args.imgsz,
+            batch=args.batch,
+            weight_decay=args.weight_decay,
+            device=args.device,
+            project=args.project,
+            name=args.name,
+        )
+        if args.resume:
+            train_kwargs["resume"] = True
+        model.train(**train_kwargs)
+        return 0
+    except Exception as e:
+        sys.stderr.write(f"Error in train: {e}\n")
+        return 1
 
 
 def cmd_predict(args: argparse.Namespace) -> int:
-    model = load_model(args.model)
-    source = Path(args.source)
-    sources = list(iter_image_files(source))
-    if not sources:
-        raise SystemExit(f"No images found under: {source}")
+    try:
+        model = load_model(args.model)
+        source = Path(args.source)
+        sources = list(iter_image_files(source))
+        if not sources:
+            raise SystemExit(f"No images found under: {source}")
 
-    allowed_classes = args.classes if args.classes else None
+        allowed_classes = args.classes if args.classes else None
 
-    out_jsonl: Optional[Path] = Path(args.out_jsonl) if args.out_jsonl else None
-    if out_jsonl is not None:
-        _ensure_dir(out_jsonl.parent)
+        out_jsonl: Optional[Path] = Path(args.out_jsonl) if args.out_jsonl else None
+        if out_jsonl is not None:
+            _ensure_dir(out_jsonl.parent)
 
-    rows = 0
-    with (out_jsonl.open("w", encoding="utf-8") if out_jsonl else _nullcontext()) as f:
-        for s in predict_summaries(
-            model=model,
-            sources=sources,
-            conf=args.conf,
-            iou=args.iou,
-            imgsz=args.imgsz,
-            device=args.device,
-            allowed_classes=allowed_classes,
-        ):
-            row = {
-                "path": str(s.source_path),
-                "has_detection": s.has_detection,
-                "max_conf": s.max_conf,
-                "classes": list(s.classes),
-            }
-            if f:
-                f.write(json.dumps(row, ensure_ascii=False) + "\n")
-            rows += 1
+        rows = 0
+        with (out_jsonl.open("w", encoding="utf-8") if out_jsonl else _nullcontext()) as f:
+            for s in predict_summaries(
+                model=model,
+                sources=sources,
+                conf=args.conf,
+                iou=args.iou,
+                imgsz=args.imgsz,
+                device=args.device,
+                allowed_classes=allowed_classes,
+            ):
+                row = {
+                    "path": str(s.source_path),
+                    "has_detection": s.has_detection,
+                    "max_conf": s.max_conf,
+                    "classes": list(s.classes),
+                }
+                if f:
+                    f.write(json.dumps(row, ensure_ascii=False) + "\n")
+                rows += 1
 
-    print(f"Processed {rows} image(s).")
-    if out_jsonl:
-        print(f"Wrote: {out_jsonl}")
-    return 0
+        print(f"Processed {rows} image(s).")
+        if out_jsonl:
+            print(f"Wrote: {out_jsonl}")
+        return 0
+    except Exception as e:
+        sys.stderr.write(f"Error in predict: {e}\n")
+        return 1
 
 
 def cmd_collect(args: argparse.Namespace) -> int:
-    model = load_model(args.model)
-    allowed_classes = args.classes if args.classes else None
-    conf = args.conf
-    iou = args.iou
-    imgsz = args.imgsz
-    device = args.device
-    overwrite = args.overwrite
-    move = getattr(args, "move", False)
-    verbose = getattr(args, "verbose", False)
+    try:
+        model = load_model(args.model)
+        allowed_classes = args.classes if args.classes else None
+        conf = args.conf
+        iou = args.iou
+        imgsz = args.imgsz
+        device = args.device
+        overwrite = args.overwrite
+        move = getattr(args, "move", False)
+        verbose = getattr(args, "verbose", False)
 
-    # Multi-directory mode
-    if getattr(args, "src_base", None):
-        src_base = Path(args.src_base)
-        dst_base = Path(args.dst_base)
-        mapping_str = args.map
-        
-        # Parse mapping table
-        mapping = {}
-        for line in mapping_str.strip().split("\n"):
-            line = line.strip()
-            if not line or ":" not in line:
-                continue
-            src, dst = line.split(":", 1)
-            mapping[src.strip()] = dst.strip()
-
-        print(f"Starting multi-directory collection from {src_base} to {dst_base}...")
-        
-        date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-        total_copied = 0
-        total_kept = 0
-        total_images = 0
-
-        for src_name, dst_name in mapping.items():
-            src_dir = src_base / src_name
-            if not src_dir.exists():
-                print(f"Warning: Source directory {src_dir} does not exist. Skipping.")
-                continue
-
-            # Find all date directories: [Base Directory]/[$Src]/***/[YYYY-MM-DD]
-            # Since *** can be deep, we use rglob
-            date_dirs = [d for d in src_dir.rglob("*") if d.is_dir() and date_pattern.match(d.name)]
+        # Multi-directory mode
+        if getattr(args, "src_base", None):
+            src_base = Path(args.src_base)
+            dst_base = Path(args.dst_base)
+            mapping_str = args.map
             
-            if getattr(args, "date", None):
-                date_dirs = [d for d in date_dirs if d.name == args.date]
-            
-            for ddir in date_dirs:
-                date_str = ddir.name
-                target_out_dir = dst_base / dst_name / date_str
-                _ensure_dir(target_out_dir)
-
-                sources = list(iter_image_files(ddir))
-                if not sources:
+            # Parse mapping table
+            mapping = {}
+            for line in mapping_str.strip().split("\n"):
+                line = line.strip()
+                if not line or ":" not in line:
                     continue
-                
-                total_images += len(sources)
-                log_path = target_out_dir / "collect_log.jsonl"
-                
-                if getattr(args, "resume", False):
-                    processed = _get_processed_paths(log_path)
-                    if processed:
-                        sources = [s for s in sources if str(s) not in processed]
-                        if not sources:
-                            continue
-                
-                with log_path.open("a", encoding="utf-8") as log_f:
-                    for s in predict_summaries(
-                        model=model,
-                        sources=sources,
-                        conf=conf,
-                        iou=iou,
-                        imgsz=imgsz,
-                        device=device,
-                        allowed_classes=allowed_classes,
-                    ):
-                        row = {
-                            "path": str(s.source_path),
-                            "has_detection": s.has_detection,
-                            "max_conf": s.max_conf,
-                            "classes": list(s.classes),
-                        }
-                        log_f.write(json.dumps(row, ensure_ascii=False) + "\n")
+                src, dst = line.split(":", 1)
+                mapping[src.strip()] = dst.strip()
 
-                        if verbose:
-                            print(
-                                f"[collect] {s.source_path.name}: "
-                                f"has_detection={s.has_detection} "
-                                f"max_conf={s.max_conf:.3f} "
-                                f"classes={list(s.classes)}"
-                            )
+            print(f"Starting multi-directory collection from {src_base} to {dst_base}...")
+            
+            date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+            total_copied = 0
+            total_kept = 0
+            total_images = 0
 
-                        if not s.has_detection:
-                            continue
-                        
-                        total_kept += 1
-                        dst_file = target_out_dir / s.source_path.name
-                        if dst_file.exists() and not overwrite:
-                            continue
-                        
-                        if move:
-                            shutil.move(str(s.source_path), str(dst_file))
-                        else:
-                            shutil.copy2(s.source_path, dst_file)
-                        total_copied += 1
+            for src_name, dst_name in mapping.items():
+                src_dir = src_base / src_name
+                if not src_dir.exists():
+                    print(f"Warning: Source directory {src_dir} does not exist. Skipping.")
+                    continue
+
+                # Find all date directories: [Base Directory]/[$Src]/***/[YYYY-MM-DD]
+                # Since *** can be deep, we use rglob
+                date_dirs = [d for d in src_dir.rglob("*") if d.is_dir() and date_pattern.match(d.name)]
+                
+                if getattr(args, "date", None):
+                    date_dirs = [d for d in date_dirs if d.name == args.date]
+                
+                for ddir in date_dirs:
+                    date_str = ddir.name
+                    target_out_dir = dst_base / dst_name / date_str
+                    _ensure_dir(target_out_dir)
+
+                    sources = list(iter_image_files(ddir))
+                    if not sources:
+                        continue
+                    
+                    total_images += len(sources)
+                    log_path = target_out_dir / "collect_log.jsonl"
+                    
+                    if getattr(args, "resume", False):
+                        processed = _get_processed_paths(log_path)
+                        if processed:
+                            sources = [s for s in sources if str(s) not in processed]
+                            if not sources:
+                                continue
+                    
+                    with log_path.open("a", encoding="utf-8") as log_f:
+                        for s in predict_summaries(
+                            model=model,
+                            sources=sources,
+                            conf=conf,
+                            iou=iou,
+                            imgsz=imgsz,
+                            device=device,
+                            allowed_classes=allowed_classes,
+                        ):
+                            try:
+                                row = {
+                                    "path": str(s.source_path),
+                                    "has_detection": s.has_detection,
+                                    "max_conf": s.max_conf,
+                                    "classes": list(s.classes),
+                                }
+                                log_f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+                                if verbose:
+                                    print(
+                                        f"[collect] {s.source_path.name}: "
+                                        f"has_detection={s.has_detection} "
+                                        f"max_conf={s.max_conf:.3f} "
+                                        f"classes={list(s.classes)}"
+                                    )
+
+                                if not s.has_detection:
+                                    continue
+                                
+                                total_kept += 1
+                                dst_file = target_out_dir / s.source_path.name
+                                if dst_file.exists() and not overwrite:
+                                    continue
+                                
+                                if move:
+                                    shutil.move(str(s.source_path), str(dst_file))
+                                else:
+                                    shutil.copy2(s.source_path, dst_file)
+                                total_copied += 1
+                            except Exception as e:
+                                sys.stderr.write(f"Error collecting {s.source_path}: {e}\n")
+                                continue
+
+            op_name = "Moved" if move else "Copied"
+            print(f"Finished multi-directory collection.")
+            print(f"Kept {total_kept}/{total_images} image(s). {op_name} {total_copied} to destination base.")
+            return 0
+
+        # Single-directory mode
+        source = Path(args.source)
+        out_dir = Path(args.out)
+        _ensure_dir(out_dir)
+
+        sources = list(iter_image_files(source))
+        if not sources:
+            raise SystemExit(f"No images found under: {source}")
+
+        log_path = out_dir / "collect_log.jsonl"
+
+        log_mode = "w"
+        if getattr(args, "resume", False):
+            processed = _get_processed_paths(log_path)
+            if processed:
+                sources = [s for s in sources if str(s) not in processed]
+                if not sources:
+                    print(f"All files in {source} already processed. Nothing to do.")
+                    return 0
+                log_mode = "a"
+
+        copied = 0
+        kept = 0
+        with log_path.open(log_mode, encoding="utf-8") as log_f:
+            for s in predict_summaries(
+                model=model,
+                sources=sources,
+                conf=conf,
+                iou=iou,
+                imgsz=imgsz,
+                device=device,
+                allowed_classes=allowed_classes,
+            ):
+                try:
+                    row = {
+                        "path": str(s.source_path),
+                        "has_detection": s.has_detection,
+                        "max_conf": s.max_conf,
+                        "classes": list(s.classes),
+                    }
+                    log_f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+                    if verbose:
+                        print(
+                            f"[collect] {s.source_path.name}: "
+                            f"has_detection={s.has_detection} "
+                            f"max_conf={s.max_conf:.3f} "
+                            f"classes={list(s.classes)}"
+                        )
+
+                    if not s.has_detection:
+                        continue
+                    kept += 1
+                    dst = out_dir / s.source_path.name
+                    if dst.exists() and not overwrite:
+                        continue
+                    if move:
+                        shutil.move(str(s.source_path), str(dst))
+                    else:
+                        shutil.copy2(s.source_path, dst)
+                    copied += 1
+                except Exception as e:
+                    sys.stderr.write(f"Error collecting {s.source_path}: {e}\n")
+                    continue
 
         op_name = "Moved" if move else "Copied"
-        print(f"Finished multi-directory collection.")
-        print(f"Kept {total_kept}/{total_images} image(s). {op_name} {total_copied} to destination base.")
+        print(f"Kept {kept}/{len(sources)} image(s). {op_name} {copied} to: {out_dir}")
+        print(f"Wrote log: {log_path}")
         return 0
-
-    # Single-directory mode
-    source = Path(args.source)
-    out_dir = Path(args.out)
-    _ensure_dir(out_dir)
-
-    sources = list(iter_image_files(source))
-    if not sources:
-        raise SystemExit(f"No images found under: {source}")
-
-    log_path = out_dir / "collect_log.jsonl"
-
-    log_mode = "w"
-    if getattr(args, "resume", False):
-        processed = _get_processed_paths(log_path)
-        if processed:
-            sources = [s for s in sources if str(s) not in processed]
-            if not sources:
-                print(f"All files in {source} already processed. Nothing to do.")
-                return 0
-            log_mode = "a"
-
-    copied = 0
-    kept = 0
-    with log_path.open(log_mode, encoding="utf-8") as log_f:
-        for s in predict_summaries(
-            model=model,
-            sources=sources,
-            conf=conf,
-            iou=iou,
-            imgsz=imgsz,
-            device=device,
-            allowed_classes=allowed_classes,
-        ):
-            row = {
-                "path": str(s.source_path),
-                "has_detection": s.has_detection,
-                "max_conf": s.max_conf,
-                "classes": list(s.classes),
-            }
-            log_f.write(json.dumps(row, ensure_ascii=False) + "\n")
-
-            if verbose:
-                print(
-                    f"[collect] {s.source_path.name}: "
-                    f"has_detection={s.has_detection} "
-                    f"max_conf={s.max_conf:.3f} "
-                    f"classes={list(s.classes)}"
-                )
-
-            if not s.has_detection:
-                continue
-            kept += 1
-            dst = out_dir / s.source_path.name
-            if dst.exists() and not overwrite:
-                continue
-            if move:
-                shutil.move(str(s.source_path), str(dst))
-            else:
-                shutil.copy2(s.source_path, dst)
-            copied += 1
-
-    op_name = "Moved" if move else "Copied"
-    print(f"Kept {kept}/{len(sources)} image(s). {op_name} {copied} to: {out_dir}")
-    print(f"Wrote log: {log_path}")
-    return 0
+    except Exception as e:
+        sys.stderr.write(f"Error in collect: {e}\n")
+        return 1
 
 
 def build_parser() -> argparse.ArgumentParser:

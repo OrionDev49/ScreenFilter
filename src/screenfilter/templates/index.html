@@ -1,233 +1,520 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScreenFilter Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>ScreenFilter | Modern Dashboard</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f8fafc;
-            --card-bg: rgba(255, 255, 255, 0.7);
-            --text: #1e293b;
-            --text-muted: #64748b;
-            --border: rgba(0, 0, 0, 0.05);
-            --terminal-bg: #0f172a;
-            --terminal-text: #f8fafc;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --slate-950: #020617;
+
+            --indigo-400: #818cf8;
+            --indigo-500: #6366f1;
+            --indigo-600: #4f46e5;
+            
+            --rose-400: #fb7185;
+            --rose-500: #f43f5e;
+            --rose-600: #e11d48;
+
+            --emerald-400: #34d399;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+
+            --primary: var(--indigo-500);
+            --primary-hover: var(--indigo-600);
+            --bg: var(--slate-950);
+            --card-bg: rgba(30, 41, 59, 0.5); /* slate-800 with opacity */
+            --card-border: rgba(51, 65, 85, 0.5); /* slate-700 with opacity */
+            --text-main: var(--slate-100);
+            --text-muted: var(--slate-400);
+            --sidebar-width: 260px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--slate-700) transparent;
+        }
+
+        *::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background-color: var(--slate-700);
+            border-radius: 10px;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
+            color: var(--text-main);
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            overflow: hidden;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1000px;
-        }
-
-        header {
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(to right, #4f46e5, #db2777);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #1e1b4b;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.625rem;
-            color: var(--text);
-            font-family: inherit;
-            font-size: 0.875rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            cursor: pointer;
-        }
-
-        input[type="checkbox"] {
-            accent-color: var(--primary);
-        }
-
-        button {
-            width: 100%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-            margin-top: 0.5rem;
-        }
-
-        button:hover {
-            background: var(--primary-hover);
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        .terminal {
-            background: var(--terminal-bg);
-            color: var(--terminal-text);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            font-size: 0.875rem;
-            min-height: 200px;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            margin-top: 1rem;
-            white-space: pre-wrap;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-        }
-
-        .terminal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 2rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.625rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .status-idle { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
-        .status-running { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
-        .status-success { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
-        .status-error { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
-
-        /* Modal Styles */
-        .modal-overlay {
+        /* --- Background Effects --- */
+        .ambient-glow {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
         }
 
-        .modal {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 1.5rem;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
+        .glow-1 {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 50%;
+            height: 50%;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+
+        .glow-2 {
+            position: absolute;
+            bottom: -5%;
+            right: -5%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(244, 63, 94, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+
+        /* --- Sidebar --- */
+        aside {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border-right: 1px solid var(--card-border);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            z-index: 50;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .logo-container h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--indigo-400), var(--rose-400));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border-radius: 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: rgba(79, 70, 229, 0.15);
+            border-color: rgba(79, 70, 229, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item i {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* --- Main Content --- */
+        main {
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2.5rem;
+            position: relative;
+        }
+
+        .content-section {
+            display: none;
+            animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* --- Cards --- */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.2s;
+        }
+
+        .glass-card:focus-within {
+            border-color: var(--indigo-500);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--slate-300);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 1rem;
+            color: var(--slate-500);
+            pointer-events: none;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            background: var(--slate-900);
+            border: 1px solid var(--slate-800);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-family: inherit;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .path-input {
+            padding-right: 5rem !important; /* Space for Browse button */
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--indigo-500);
+            background: var(--slate-950);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .browse-action {
+            position: absolute;
+            right: 0.5rem;
+            height: 2.25rem;
+            padding: 0 0.875rem;
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: 0.5rem;
+            color: var(--slate-300);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .browse-action:hover {
+            background: var(--slate-700);
+            color: white;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            width: 100%;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--indigo-500), var(--indigo-600));
+            color: white;
+            box-shadow: 0 4px 15px -4px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--indigo-400), var(--indigo-500));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.5);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, var(--rose-500), var(--rose-600));
+            color: white;
+            box-shadow: 0 4px 15px -4px rgba(244, 63, 94, 0.4);
+        }
+
+        .btn-stop:hover {
+            background: linear-gradient(135deg, var(--rose-400), var(--rose-500));
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* --- Switch / Checkbox --- */
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            user-select: none;
+        }
+
+        .checkbox-item input {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid var(--slate-700);
+            border-radius: 0.375rem;
+            background: var(--slate-900);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item input:checked {
+            background: var(--indigo-500);
+            border-color: var(--indigo-500);
+        }
+
+        .checkbox-item input:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 0.875rem;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%);
+        }
+
+        .checkbox-item label {
+            margin-bottom: 0;
+            cursor: pointer;
+            color: var(--slate-300);
+        }
+
+        /* --- Terminal Toggle --- */
+        .terminal-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--slate-800);
+            height: 280px;
+            transform: translateY(240px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-panel.open {
+            transform: translateY(0);
+        }
+
+        .terminal-header {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: rgba(30, 41, 59, 0.4);
+        }
+
+        .terminal-header .title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--slate-400);
+        }
+
+        .terminal-body {
+            flex: 1;
+            padding: 1.25rem;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            color: var(--slate-300);
+            white-space: pre-wrap;
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--slate-600);
+        }
+
+        .status-running .status-dot { background: var(--indigo-400); box-shadow: 0 0 8px var(--indigo-500); animation: pulse 2s infinite; }
+        .status-success .status-dot { background: var(--emerald-400); }
+        .status-error .status-dot { background: var(--rose-400); }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* --- Modal (File Browser) --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-card {
+            background: var(--slate-900);
+            border: 1px solid var(--slate-700);
+            border-radius: 1.5rem;
+            width: 100%;
+            max-width: 640px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .modal-header {
             padding: 1.5rem;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--slate-800);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -237,21 +524,27 @@
             flex: 1;
             overflow-y: auto;
             padding: 1rem;
-            background: #f8fafc;
         }
 
-        .modal-footer {
-            padding: 1.25rem;
-            border-top: 1px solid #f1f5f9;
+        .path-breadcrumb {
+            background: var(--slate-950);
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            color: var(--indigo-400);
+            word-break: break-all;
+            border: 1px solid var(--slate-800);
+        }
+
+        .file-list {
             display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            background: #ffffff;
-            border-bottom-left-radius: 1.5rem;
-            border-bottom-right-radius: 1.5rem;
+            flex-direction: column;
+            gap: 0.25rem;
         }
 
-        .file-item {
+        .file-row {
             display: flex;
             align-items: center;
             gap: 0.75rem;
@@ -259,172 +552,294 @@
             border-radius: 0.75rem;
             cursor: pointer;
             transition: all 0.2s;
-            margin-bottom: 0.25rem;
             border: 1px solid transparent;
-            color: #334155;
         }
 
-        .file-item:hover {
-            background: #ffffff;
-            border-color: #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        .file-row:hover {
+            background: var(--slate-800);
         }
 
-        .file-item.selected {
-            background: #eef2ff;
-            border-color: var(--primary);
-            color: var(--primary);
-            font-weight: 500;
+        .file-row.selected {
+            background: rgba(79, 70, 229, 0.1);
+            border-color: var(--indigo-500);
+            color: var(--indigo-400);
         }
 
-        .file-icon {
-            font-size: 1.25rem;
+        .file-row i {
+            color: var(--slate-500);
         }
 
-        .path-input-group {
+        .file-row.dir i { color: var(--indigo-400); }
+
+        .modal-footer {
+            padding: 1.25rem;
+            border-top: 1px solid var(--slate-800);
             display: flex;
-            gap: 0.5rem;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: var(--slate-950);
         }
 
-        .browse-btn {
+        .btn-ghost {
+            background: transparent;
+            color: var(--slate-400);
+            border: 1px solid var(--slate-800);
+            padding: 0.5rem 1rem;
             width: auto;
-            white-space: nowrap;
-            padding: 0 1rem;
-            margin-top: 0;
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+        }
+
+        .btn-ghost:hover {
+            background: var(--slate-800);
+            color: white;
+        }
+
+        .badge {
+            padding: 0.125rem 0.625rem;
+            border-radius: 9999px;
             font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.025em;
         }
 
-        .browse-btn:hover {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-
-        .current-path-display {
-            font-size: 0.8125rem;
-            color: #64748b;
-            word-break: break-all;
-            margin-bottom: 1rem;
-            padding: 0.75rem 1rem;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            font-family: monospace;
-        }
-
-        @media (max-width: 640px) {
-            body { padding: 1rem; }
-            h1 { font-size: 2rem; }
+        @media (max-width: 768px) {
+            aside { width: 80px; padding: 1.5rem 0.75rem; align-items: center; }
+            .logo-container h1, .nav-item span { display: none; }
+            main { padding: 1.5rem; }
+            .terminal-panel { left: 80px; }
+            .grid-2 { grid-template-columns: 1fr; }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <header>
+    <div class="ambient-glow">
+        <div class="glow-1"></div>
+        <div class="glow-2"></div>
+    </div>
+
+    <aside>
+        <div class="logo-container">
+            <i data-lucide="filter" class="w-8 h-8 text-indigo-500"></i>
             <h1>ScreenFilter</h1>
-            <p style="color: var(--text-muted)">YOLOv8-based Screenshot Collector</p>
-        </header>
+        </div>
 
-        <div class="dashboard-grid">
-            <!-- Train Card -->
-            <div class="card">
-                <h2>Train</h2>
-                <div class="form-group">
-                    <label>Data YAML</label>
-                    <div class="path-input-group">
-                        <input type="text" id="train-data" placeholder="configs/messengers.yaml">
-                        <button class="browse-btn" onclick="openFileBrowser('train-data')">Browse</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Model/Weights</label>
-                    <div class="path-input-group">
-                        <input type="text" id="train-model" placeholder="yolov8n.pt">
-                        <button class="browse-btn" onclick="openFileBrowser('train-model')">Browse</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Epochs</label>
-                    <input type="number" id="train-epochs" value="50">
-                </div>
-                <button onclick="runCommand('train')">Run Train</button>
+        <nav>
+            <div class="nav-item active" onclick="showSection('overview', this)">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Overview</span>
+            </div>
+            <div class="nav-item" onclick="showSection('train', this)">
+                <i data-lucide="database"></i>
+                <span>Train Model</span>
+            </div>
+            <div class="nav-item" onclick="showSection('predict', this)">
+                <i data-lucide="scan-search"></i>
+                <span>Predict</span>
+            </div>
+            <div class="nav-item" onclick="showSection('collect', this)">
+                <i data-lucide="layers"></i>
+                <span>Collection</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main>
+        <!-- Overview Section -->
+        <section id="overview" class="content-section active">
+            <div class="section-header">
+                <h2>Dashboard</h2>
+                <p>Monitor your YOLOv8 screenshot filtering workspace.</p>
             </div>
 
-            <!-- Predict Card -->
-            <div class="card">
-                <h2>Predict</h2>
-                <div class="form-group">
-                    <label>Model Path</label>
-                    <div class="path-input-group">
-                        <input type="text" id="predict-model" placeholder="runs/detect/train/weights/best.pt">
-                        <button class="browse-btn" onclick="openFileBrowser('predict-model')">Browse</button>
+            <div class="grid-2">
+                <div class="glass-card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="padding: 0.75rem; border-radius: 1rem; background: rgba(79, 70, 229, 0.1); color: var(--indigo-400);">
+                            <i data-lucide="zap" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 600;">System Status</h3>
+                            <p style="font-size: 0.875rem; color: var(--slate-400);">All services operational</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                            <span style="color: var(--slate-400);">Compute Device</span>
+                            <span id="display-device" style="font-weight: 600; color: var(--indigo-400);">Auto (CUDA/CPU)</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                            <span style="color: var(--slate-400);">Workspace</span>
+                            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">ScreenFilter/src</span>
+                        </div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Source (Folder/File)</label>
-                    <div class="path-input-group">
-                        <input type="text" id="predict-source" placeholder="data/images">
-                        <button class="browse-btn" onclick="openFileBrowser('predict-source')">Browse</button>
+
+                <div class="glass-card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="padding: 0.75rem; border-radius: 1rem; background: rgba(16, 185, 129, 0.1); color: var(--emerald-400);">
+                            <i data-lucide="check-circle" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.125rem; font-weight: 600;">Last Action</h3>
+                            <p style="font-size: 0.875rem; color: var(--slate-400);">No tasks completed yet</p>
+                        </div>
                     </div>
+                    <button class="btn btn-ghost" onclick="showSection('collect', document.querySelectorAll('.nav-item')[3])">
+                        Get Started <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label>Confidence Threshold</label>
-                    <input type="number" id="predict-conf" value="0.25" step="0.05" min="0" max="1">
-                </div>
-                <button onclick="runCommand('predict')">Run Predict</button>
+            </div>
+        </section>
+
+        <!-- Train Section -->
+        <section id="train" class="content-section">
+            <div class="section-header">
+                <h2>Train Model</h2>
+                <p>Fine-tune YOLOv8 on your custom messenger screenshot dataset.</p>
             </div>
 
-            <!-- Collect Card -->
-            <div class="card">
-                <h2>Collect</h2>
-                
-                <div style="margin-bottom: 1rem;">
-                    <label class="checkbox-group">
-                        <input type="checkbox" id="collect-multi-mode" onchange="toggleCollectMode()"> Multi-Directory Mode
+            <div class="glass-card">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label><i data-lucide="file-code" class="w-4 h-4 text-indigo-400"></i> Data YAML</label>
+                        <div class="input-group">
+                            <input type="text" id="train-data" class="path-input" placeholder="configs/messengers.yaml">
+                            <button class="browse-action" onclick="openFileBrowser('train-data')">
+                                <i data-lucide="search" class="w-3 h-3"></i> Browse
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i data-lucide="box" class="w-4 h-4 text-indigo-400"></i> Base Model</label>
+                        <div class="input-group">
+                            <input type="text" id="train-model" class="path-input" placeholder="yolov8n.pt">
+                            <button class="browse-action" onclick="openFileBrowser('train-model')">
+                                <i data-lucide="search" class="w-3 h-3"></i> Browse
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label><i data-lucide="refresh-cw" class="w-4 h-4 text-slate-500"></i> Epochs</label>
+                        <input type="number" id="train-epochs" value="50">
+                    </div>
+                    <div class="form-group">
+                        <label><i data-lucide="cpu" class="w-4 h-4 text-slate-500"></i> Device</label>
+                        <select id="train-device">
+                            <option value="">Auto Detect</option>
+                            <option value="0">GPU (Cuda:0)</option>
+                            <option value="cpu">CPU Only</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btn-train" onclick="runCommand('train')">
+                    <i data-lucide="play" class="w-4 h-4 text-white"></i> Start Training
+                </button>
+            </div>
+        </section>
+
+        <!-- Predict Section -->
+        <section id="predict" class="content-section">
+            <div class="section-header">
+                <h2>Predict & Audit</h2>
+                <p>Run inference on a folder and generate JSONL detection summaries.</p>
+            </div>
+
+            <div class="glass-card">
+                <div class="form-group">
+                    <label><i data-lucide="map" class="w-4 h-4 text-emerald-400"></i> Model Weights</label>
+                    <div class="input-group">
+                        <input type="text" id="predict-model" class="path-input" placeholder="runs/detect/train/weights/best.pt">
+                        <button class="browse-action" onclick="openFileBrowser('predict-model')">
+                            <i data-lucide="search" class="w-3 h-3"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i data-lucide="image" class="w-4 h-4 text-emerald-400"></i> Source Images</label>
+                    <div class="input-group">
+                        <input type="text" id="predict-source" class="path-input" placeholder="data/images">
+                        <button class="browse-action" onclick="openFileBrowser('predict-source')">
+                            <i data-lucide="search" class="w-3 h-3"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label><i data-lucide="target" class="w-4 h-4 text-emerald-400"></i> Confidence</label>
+                        <input type="number" id="predict-conf" value="0.25" step="0.05" min="0" max="1">
+                    </div>
+                    <div class="form-group">
+                        <label><i data-lucide="file-output" class="w-4 h-4 text-slate-500"></i> JSONL Output (Optional)</label>
+                        <input type="text" id="predict-out-jsonl" placeholder="results.jsonl">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btn-predict" onclick="runCommand('predict')" style="background: linear-gradient(135deg, var(--emerald-500), var(--emerald-600));">
+                    <i data-lucide="zap" class="w-4 h-4 text-white"></i> Run Inference
+                </button>
+            </div>
+        </section>
+
+        <!-- Collect Section -->
+        <section id="collect" class="content-section">
+            <div class="section-header">
+                <h2>Automated Collection</h2>
+                <p>Process screenshots and sort them based on detected messenger activity.</p>
+            </div>
+
+            <div class="glass-card">
+                <div style="margin-bottom: 2rem;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="collect-multi-mode" onchange="toggleCollectMode()">
+                        <label for="collect-multi-mode">Multi-Directory Pipeline (Advanced)</label>
                     </label>
                 </div>
 
-                <!-- Single Directory Fields -->
                 <div id="collect-single-fields">
-                    <div class="form-group">
-                        <label>Source Path</label>
-                        <div class="path-input-group">
-                            <input type="text" id="collect-source" placeholder="data/images">
-                            <button class="browse-btn" onclick="openFileBrowser('collect-source')">Browse</button>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label><i data-lucide="folder-input" class="w-4 h-4 text-rose-400"></i> Source Folder</label>
+                            <div class="input-group">
+                                <input type="text" id="collect-source" class="path-input" placeholder="data/images">
+                                <button class="browse-action" onclick="openFileBrowser('collect-source')">
+                                    <i data-lucide="search" class="w-3 h-3"></i> Browse
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Output Path</label>
-                        <div class="path-input-group">
-                            <input type="text" id="collect-out" placeholder="data/collected">
-                            <button class="browse-btn" onclick="openFileBrowser('collect-out')">Browse</button>
+                        <div class="form-group">
+                            <label><i data-lucide="folder-output" class="w-4 h-4 text-rose-400"></i> Destination</label>
+                            <div class="input-group">
+                                <input type="text" id="collect-out" class="path-input" placeholder="data/collected">
+                                <button class="browse-action" onclick="openFileBrowser('collect-out')">
+                                    <i data-lucide="search" class="w-3 h-3"></i> Browse
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Multi-Directory Fields -->
                 <div id="collect-multi-fields" style="display: none;">
-                    <div class="form-group">
-                        <label>Source Base Directory</label>
-                        <div class="path-input-group">
-                            <input type="text" id="collect-src-base" placeholder="/path/to/src/base">
-                            <button class="browse-btn" onclick="openFileBrowser('collect-src-base')">Browse</button>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Source Base Dir</label>
+                            <div class="input-group">
+                                <input type="text" id="collect-src-base" class="path-input">
+                                <button class="browse-action" onclick="openFileBrowser('collect-src-base')">Browse</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Destination Base Dir</label>
+                            <div class="input-group">
+                                <input type="text" id="collect-dst-base" class="path-input">
+                                <button class="browse-action" onclick="openFileBrowser('collect-dst-base')">Browse</button>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Destination Base Directory</label>
-                        <div class="path-input-group">
-                            <input type="text" id="collect-dst-base" placeholder="/path/to/dst/base">
-                            <button class="browse-btn" onclick="openFileBrowser('collect-dst-base')">Browse</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Matching Table ($Src:$Dst)</label>
-                        <textarea id="collect-map" rows="5" placeholder="30:20&#10;2:21" style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-family: monospace; font-size: 0.8125rem;">30:20
+                        <label>Mapping Table ($Src:$Dst)</label>
+                        <textarea id="collect-map" rows="6" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">30:20
 2:21
 10:22
 18:23
@@ -434,7 +849,7 @@
 6:27
 13:28
 3:29
-26:30
+14:30
 4:31
 11:32
 5:33
@@ -446,73 +861,105 @@
 1:39
 31:40</textarea>
                     </div>
-                    <div class="form-group">
-                        <label>Specific Date (Optional)</label>
-                        <input type="date" id="collect-date">
-                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Model Path</label>
-                    <div class="path-input-group">
-                        <input type="text" id="collect-model" placeholder="runs/detect/train/weights/best.pt">
-                        <button class="browse-btn" onclick="openFileBrowser('collect-model')">Browse</button>
+                    <label><i data-lucide="file-key" class="w-4 h-4 text-rose-400"></i> Model Weights</label>
+                    <div class="input-group">
+                        <input type="text" id="collect-model" class="path-input" placeholder="runs/detect/train/weights/best.pt">
+                        <button class="browse-action" onclick="openFileBrowser('collect-model')">
+                            <i data-lucide="search" class="w-3 h-3"></i> Browse
+                        </button>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Confidence Threshold</label>
-                    <input type="number" id="collect-conf" value="0.25" step="0.05" min="0" max="1">
+                <div class="grid-2" style="margin-top: 1rem;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="collect-move">
+                        <label for="collect-move">Move files (delete source)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="collect-resume" checked>
+                        <label for="collect-resume">Resume (skip processed)</label>
+                    </div>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
-                    <label class="checkbox-group">
-                        <input type="checkbox" id="collect-move"> Move files instead of copying
-                    </label>
-                    <label class="checkbox-group">
-                        <input type="checkbox" id="collect-verbose"> Verbose logging
-                    </label>
-                </div>
+                <button class="btn btn-primary" id="btn-collect" onclick="runCommand('collect')" style="margin-top: 1.5rem; background: linear-gradient(135deg, var(--rose-500), var(--rose-600));">
+                    <i data-lucide="package-plus" class="w-4 h-4 text-white"></i> Start Collection
+                </button>
+            </div>
+        </section>
+    </main>
 
-                <button onclick="runCommand('collect')">Run Collect</button>
+    <!-- Console Panel -->
+    <div id="terminal-panel" class="terminal-panel">
+        <div class="terminal-header" onclick="toggleTerminal()">
+            <div class="title">
+                <div id="terminal-status" class="status-dot"></div>
+                <span id="terminal-title">Terminal Console</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <span id="task-badge" class="badge" style="display: none; background: rgba(79, 70, 229, 0.2); color: var(--indigo-400);">Running</span>
+                <i data-lucide="chevron-up" id="terminal-chevron" class="w-4 h-4 transition-transform duration-300"></i>
             </div>
         </div>
-
-        <div class="terminal-header">
-            <span>Terminal Output</span>
-            <span id="status" class="status-badge status-idle">Idle</span>
+        <div id="terminal-body" class="terminal-body">
+            Welcome to ScreenFilter. Initialize a task to see output here.
         </div>
-        <div id="output" class="terminal">Ready to process commands...</div>
     </div>
 
-    <!-- File Browser Modal -->
+    <!-- Modals -->
     <div id="file-browser-modal" class="modal-overlay">
-        <div class="modal">
+        <div class="modal-card">
             <div class="modal-header">
-                <h3 id="modal-title">Select Path</h3>
-                <button class="browse-btn" onclick="closeFileBrowser()" style="width: auto; padding: 0.5rem;">✕</button>
+                <div>
+                    <h3 style="font-family: 'Outfit'; font-size: 1.125rem; font-weight: 600;">System Explorer</h3>
+                    <p style="font-size: 0.75rem; color: var(--slate-500);">Navigate and select targets</p>
+                </div>
+                <button class="btn-ghost" onclick="closeFileBrowser()" style="width: auto; padding: 0.5rem; border: none; border-radius: 50%;">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
             <div class="modal-body">
-                <div id="current-path" class="current-path-display"></div>
-                <div id="file-list"></div>
+                <div id="current-path-breadcrumb" class="path-breadcrumb">/</div>
+                <div id="file-list" class="file-list">
+                    <!-- Loaded via JS -->
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="browse-btn" onclick="closeFileBrowser()">Cancel</button>
-                <button id="select-btn" onclick="selectCurrentPath()">Select Current Path</button>
+                <button class="btn btn-ghost" onclick="closeFileBrowser()" style="width: auto;">Cancel</button>
+                <button class="btn btn-primary" onclick="selectCurrentPath()" style="width: auto; padding: 0.5rem 1.5rem;">Select Path</button>
             </div>
         </div>
     </div>
 
     <script>
+        // --- Navigation ---
+        function showSection(sectionId, element) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            if (element) element.classList.add('active');
+        }
+
+        function toggleTerminal() {
+            const panel = document.getElementById('terminal-panel');
+            const icon = document.getElementById('terminal-chevron');
+            panel.classList.toggle('open');
+            icon.style.transform = panel.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+
+        // --- File Browser ---
         let currentTargetId = '';
         let currentPath = '';
         let selectedPath = '';
 
-        function openFileBrowser(targetId) {
+        async function openFileBrowser(targetId) {
             currentTargetId = targetId;
             const initialPath = document.getElementById(targetId).value || '';
             document.getElementById('file-browser-modal').style.display = 'flex';
-            loadDir(initialPath);
+            await loadDir(initialPath);
         }
 
         function closeFileBrowser() {
@@ -521,47 +968,46 @@
 
         async function loadDir(path) {
             const fileListEl = document.getElementById('file-list');
-            const pathEl = document.getElementById('current-path');
-            fileListEl.innerHTML = '<p style="padding: 1rem; color: var(--text-muted)">Loading...</p>';
+            const breadcrumbEl = document.getElementById('current-path-breadcrumb');
+            fileListEl.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--slate-500);">Loading filesystem...</div>';
 
             try {
                 const response = await fetch(`/ls?path=${encodeURIComponent(path)}`);
-                if (!response.ok) throw new Error('Failed to load directory');
+                if (!response.ok) throw new Error('Inaccessible path');
                 const data = await response.json();
 
                 currentPath = data.current_path;
                 selectedPath = data.current_path;
-                pathEl.textContent = currentPath;
+                breadcrumbEl.textContent = currentPath;
                 fileListEl.innerHTML = '';
 
                 data.items.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'file-item';
-                    div.onclick = () => {
+                    const row = document.createElement('div');
+                    row.className = `file-row ${item.is_dir ? 'dir' : 'file'}`;
+                    row.onclick = () => {
                         if (item.is_dir) {
                             loadDir(item.path);
                         } else {
-                            // Select file
-                            const items = document.querySelectorAll('.file-item');
-                            items.forEach(el => el.classList.remove('selected'));
-                            div.classList.add('selected');
+                            document.querySelectorAll('.file-row').forEach(r => r.classList.remove('selected'));
+                            row.classList.add('selected');
                             selectedPath = item.path;
                         }
                     };
-                    
-                    const icon = document.createElement('span');
-                    icon.className = 'file-icon';
-                    icon.textContent = item.is_dir ? '📁' : '📄';
-                    
-                    const name = document.createElement('span');
-                    name.textContent = item.name;
-                    
-                    div.appendChild(icon);
-                    div.appendChild(name);
-                    fileListEl.appendChild(div);
+
+                    const icon = document.createElement('i');
+                    icon.dataset.lucide = item.is_dir ? (item.name === '..' ? 'corner-left-up' : 'folder') : 'file-text';
+                    icon.classList.add('w-5', 'h-5');
+
+                    const text = document.createElement('span');
+                    text.textContent = item.name;
+
+                    row.appendChild(icon);
+                    row.appendChild(text);
+                    fileListEl.appendChild(row);
                 });
+                lucide.createIcons();
             } catch (err) {
-                fileListEl.innerHTML = `<p style="padding: 1rem; color: #ef4444">Error: ${err.message}</p>`;
+                fileListEl.innerHTML = `<div style="padding: 1rem; color: var(--rose-400);">Error: ${err.message}</div>`;
             }
         }
 
@@ -572,6 +1018,7 @@
             closeFileBrowser();
         }
 
+        // --- Logic ---
         function toggleCollectMode() {
             const isMulti = document.getElementById('collect-multi-mode').checked;
             document.getElementById('collect-single-fields').style.display = isMulti ? 'none' : 'block';
@@ -582,58 +1029,60 @@
         let pollInterval = null;
 
         async function runCommand(cmd) {
-            const outputEl = document.getElementById('output');
-            const statusEl = document.getElementById('status');
-            // Assuming the button structure is exactly like `<button onclick="runCommand('...')">...` 
-            // We can match it easily
-            const btn = document.querySelector(`[onclick="runCommand('${cmd}')"]`);
-            
+            const terminalBody = document.getElementById('terminal-body');
+            const panel = document.getElementById('terminal-panel');
+            const statusIndicator = document.getElementById('terminal-status');
+            const badge = document.getElementById('task-badge');
+            const btn = document.getElementById(`btn-${cmd}`);
+
             if (activeTaskId) {
-                // If a task is running, user clicked "Stop"
                 try {
                     await fetch(`/stop/${activeTaskId}`, { method: 'POST' });
-                    outputEl.textContent += '\n\nSent stop signal...';
-                } catch (err) {
-                    console.error("Failed to stop task:", err);
-                }
+                    terminalBody.textContent += '\n\n>>> TERMINATION SIGNAL SENT...';
+                } catch (err) { console.error(err); }
                 return;
             }
 
-            const originalText = btn.textContent;
-            outputEl.textContent = `Starting ${cmd}...\n`;
-            statusEl.textContent = 'Starting';
-            statusEl.className = 'status-badge status-running';
-            btn.textContent = `Stop ${cmd}`;
-            btn.style.background = '#ef4444'; // red
+            // Open terminal on start
+            panel.classList.add('open');
+            terminalBody.textContent = `>>> Initializing execution: ${cmd.toUpperCase()}\n`;
+            statusIndicator.parentElement.parentElement.classList.add('status-running'); // Fix selector logic
+            panel.dataset.status = 'running';
+            panel.style.borderTopColor = 'var(--indigo-500)';
+            
+            badge.style.display = 'block';
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="square" class="w-4 h-4"></i> Stop ${cmd}`;
+            btn.classList.add('btn-stop');
+            btn.classList.remove('btn-primary');
 
+            // Gather Args
             let args = {};
             if (cmd === 'train') {
                 args = {
                     data: document.getElementById('train-data').value,
                     model: document.getElementById('train-model').value,
-                    epochs: parseInt(document.getElementById('train-epochs').value)
+                    epochs: parseInt(document.getElementById('train-epochs').value),
+                    device: document.getElementById('train-device').value
                 };
             } else if (cmd === 'predict') {
                 args = {
                     model: document.getElementById('predict-model').value,
                     source: document.getElementById('predict-source').value,
-                    conf: parseFloat(document.getElementById('predict-conf').value)
+                    conf: parseFloat(document.getElementById('predict-conf').value),
+                    out_jsonl: document.getElementById('predict-out-jsonl').value || null
                 };
             } else if (cmd === 'collect') {
                 const isMulti = document.getElementById('collect-multi-mode').checked;
                 args = {
                     model: document.getElementById('collect-model').value,
-                    conf: parseFloat(document.getElementById('collect-conf').value),
-                    verbose: document.getElementById('collect-verbose').checked,
-                    move: document.getElementById('collect-move').checked
+                    move: document.getElementById('collect-move').checked,
+                    resume: document.getElementById('collect-resume').checked
                 };
-                
                 if (isMulti) {
                     args.src_base = document.getElementById('collect-src-base').value;
                     args.dst_base = document.getElementById('collect-dst-base').value;
                     args.map = document.getElementById('collect-map').value;
-                    const dateVal = document.getElementById('collect-date').value;
-                    if (dateVal) args.date = dateVal;
                 } else {
                     args.source = document.getElementById('collect-source').value;
                     args.out = document.getElementById('collect-out').value;
@@ -646,55 +1095,47 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ command: cmd, args: args })
                 });
-
                 const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.error || "Failed to start command");
-                }
-                
-                activeTaskId = data.task_id;
-                
-                pollInterval = setInterval(async () => {
-                    try {
-                        const res = await fetch(`/status/${activeTaskId}`);
-                        const statusData = await res.json();
-                        
-                        outputEl.textContent = '';
-                        if (statusData.stdout) outputEl.textContent += statusData.stdout;
-                        if (statusData.stderr) outputEl.textContent += '\nERRORS:\n' + statusData.stderr;
-                        
-                        // Auto scroll to bottom
-                        outputEl.scrollTop = outputEl.scrollHeight;
+                if (!data.success) throw new Error(data.error);
 
-                        if (!statusData.running) {
-                            clearInterval(pollInterval);
-                            activeTaskId = null;
-                            btn.textContent = originalText;
-                            btn.style.background = ''; // reset to default
-                            
-                            if (statusData.success) {
-                                statusEl.textContent = 'Success';
-                                statusEl.className = 'status-badge status-success';
-                            } else {
-                                statusEl.textContent = 'Failed';
-                                statusEl.className = 'status-badge status-error';
-                            }
-                        }
-                    } catch (e) {
-                         console.error("Polling error:", e);
+                activeTaskId = data.task_id;
+                lucide.createIcons();
+
+                pollInterval = setInterval(async () => {
+                    const res = await fetch(`/status/${activeTaskId}`);
+                    const status = await res.json();
+
+                    terminalBody.textContent = (status.stdout + '\n' + (status.stderr ? 'ERROR LOG:\n' + status.stderr : ''));
+                    terminalBody.scrollTop = terminalBody.scrollHeight;
+
+                    if (!status.running) {
+                        clearInterval(pollInterval);
+                        activeTaskId = null;
+                        btn.innerHTML = originalBtnHtml;
+                        btn.classList.remove('btn-stop');
+                        btn.classList.add('btn-primary');
+                        badge.style.display = 'none';
+                        panel.style.borderTopColor = status.success ? 'var(--emerald-500)' : 'var(--rose-500)';
+                        
+                        // Update indicators
+                        panel.dataset.status = status.success ? 'success' : 'error';
+                        lucide.createIcons();
                     }
-                }, 1000);
+                }, 800);
 
             } catch (err) {
-                outputEl.textContent += `\nError: ${err.message}`;
-                statusEl.textContent = 'Error';
-                statusEl.className = 'status-badge status-error';
-                btn.textContent = originalText;
-                btn.style.background = '';
+                terminalBody.textContent += `\nFATAL ERROR: ${err.message}`;
+                btn.innerHTML = originalBtnHtml;
+                btn.classList.remove('btn-stop');
+                btn.classList.add('btn-primary');
+                badge.style.display = 'none';
                 activeTaskId = null;
             }
         }
+
+        // Initialize Icons
+        lucide.createIcons();
     </script>
 </body>
+
 </html>

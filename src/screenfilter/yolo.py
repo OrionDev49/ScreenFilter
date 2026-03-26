@@ -24,11 +24,19 @@ def iter_image_files(source: Path) -> Iterable[Path]:
     exts = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
     if source.is_file():
         if source.suffix.lower() in exts:
-            yield source
+            try:
+                if source.stat().st_size > 0:
+                    yield source
+            except (OSError, PermissionError):
+                pass
         return
     for p in sorted(source.rglob("*")):
-        if p.is_file() and p.suffix.lower() in exts:
-            yield p
+        try:
+            if p.is_file() and p.suffix.lower() in exts:
+                if p.stat().st_size > 0:
+                    yield p
+        except (OSError, PermissionError):
+            continue
 
 
 def summarize_detection(
@@ -71,18 +79,23 @@ def predict_summaries(
     device: Optional[str] = None,
     allowed_classes: Optional[Sequence[int]] = None,
 ):
+    import sys
     for p in sources:
-        results = model.predict(
-            source=str(p),
-            conf=conf,
-            iou=iou,
-            imgsz=imgsz,
-            device=device,
-            verbose=False,
-        )
-        # ultralytics returns a list (even for a single image)
-        if not results:
-            yield DetectionSummary(source_path=p, has_detection=False, max_conf=0.0, classes=())
+        try:
+            results = model.predict(
+                source=str(p),
+                conf=conf,
+                iou=iou,
+                imgsz=imgsz,
+                device=device,
+                verbose=False,
+            )
+            # ultralytics returns a list (even for a single image)
+            if not results:
+                yield DetectionSummary(source_path=p, has_detection=False, max_conf=0.0, classes=())
+                continue
+            yield summarize_detection(results[0], conf_threshold=conf, allowed_classes=allowed_classes)
+        except Exception as e:
+            sys.stderr.write(f"Error processing {p}: {e}\n")
             continue
-        yield summarize_detection(results[0], conf_threshold=conf, allowed_classes=allowed_classes)
 
