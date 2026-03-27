@@ -11,6 +11,7 @@ class DetectionSummary:
     has_detection: bool
     max_conf: float
     classes: tuple[int, ...]
+    is_excluded: bool = False
 
 
 def load_model(model: str | Path) -> Any:
@@ -43,31 +44,45 @@ def summarize_detection(
     result,
     conf_threshold: float,
     allowed_classes: Optional[Sequence[int]] = None,
+    exclude_classes: Optional[Sequence[int]] = None,
 ) -> DetectionSummary:
     src = Path(result.path)
     if result.boxes is None or len(result.boxes) == 0:
-        return DetectionSummary(source_path=src, has_detection=False, max_conf=0.0, classes=())
+        return DetectionSummary(source_path=src, has_detection=False, max_conf=0.0, classes=(), is_excluded=False)
 
     boxes = result.boxes
     confs = boxes.conf.detach().cpu().tolist()
     clss = boxes.cls.detach().cpu().tolist()
 
     allowed = set(allowed_classes) if allowed_classes is not None else None
+    excluded_set = set(exclude_classes) if exclude_classes is not None else None
+    
     kept: list[tuple[float, int]] = []
+    all_detected_above_conf = set()
+
     for c, k in zip(confs, clss):
         ci = int(k)
         if c < conf_threshold:
             continue
+        
+        all_detected_above_conf.add(ci)
+        
         if allowed is not None and ci not in allowed:
             continue
         kept.append((float(c), ci))
 
+    # Logical Product: Exact match exclusion
+    is_excluded = False
+    if excluded_set is not None and all_detected_above_conf == excluded_set:
+        is_excluded = True
+        kept = []
+
     if not kept:
-        return DetectionSummary(source_path=src, has_detection=False, max_conf=0.0, classes=())
+        return DetectionSummary(source_path=src, has_detection=False, max_conf=0.0, classes=(), is_excluded=is_excluded)
 
     max_conf = max(c for c, _ in kept)
     classes = tuple(sorted(set(ci for _, ci in kept)))
-    return DetectionSummary(source_path=src, has_detection=True, max_conf=max_conf, classes=classes)
+    return DetectionSummary(source_path=src, has_detection=True, max_conf=max_conf, classes=classes, is_excluded=False)
 
 
 def predict_summaries(
@@ -78,6 +93,7 @@ def predict_summaries(
     imgsz: int = 960,
     device: Optional[str] = None,
     allowed_classes: Optional[Sequence[int]] = None,
+    exclude_classes: Optional[Sequence[int]] = None,
 ):
     import sys
     for p in sources:
@@ -92,9 +108,14 @@ def predict_summaries(
             )
             # ultralytics returns a list (even for a single image)
             if not results:
-                yield DetectionSummary(source_path=p, has_detection=False, max_conf=0.0, classes=())
+                yield DetectionSummary(source_path=p, has_detection=False, max_conf=0.0, classes=(), is_excluded=False)
                 continue
-            yield summarize_detection(results[0], conf_threshold=conf, allowed_classes=allowed_classes)
+            yield summarize_detection(
+                results[0],
+                conf_threshold=conf,
+                allowed_classes=allowed_classes,
+                exclude_classes=exclude_classes
+            )
         except Exception as e:
             sys.stderr.write(f"Error processing {p}: {e}\n")
             continue

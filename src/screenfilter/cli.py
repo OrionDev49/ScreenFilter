@@ -38,6 +38,42 @@ def _get_processed_paths(log_path: Path) -> set[str]:
     return processed
 
 
+def _resolve_classes(
+    model: Any,
+    include_specs: Optional[list[str]],
+    exclude_specs: Optional[list[str]] = None,
+) -> Optional[list[int]]:
+    if not include_specs and not exclude_specs:
+        return None
+
+    all_names = model.names  # dict: int -> str
+    all_ids = set(all_names.keys())
+
+    def parse_spec(specs: list[str]) -> set[int]:
+        res = set()
+        for s in specs:
+            if s.isdigit():
+                res.add(int(s))
+                continue
+
+            # String name or wildcard
+            pattern = s.replace("*", ".*")
+            try:
+                regex = re.compile(f"^{pattern}$")
+                for idx, name in all_names.items():
+                    if regex.match(name):
+                        res.add(idx)
+            except re.error:
+                continue
+        return res
+
+    included = parse_spec(include_specs) if include_specs else all_ids
+    excluded = parse_spec(exclude_specs) if exclude_specs else set()
+
+    final = sorted(list(included - excluded))
+    return final
+
+
 def cmd_train(args: argparse.Namespace) -> int:
     try:
         from ultralytics import YOLO  # type: ignore
@@ -71,7 +107,8 @@ def cmd_predict(args: argparse.Namespace) -> int:
         if not sources:
             raise SystemExit(f"No images found under: {source}")
 
-        allowed_classes = args.classes if args.classes else None
+        allowed_classes = _resolve_classes(model, args.classes, None)
+        exclude_classes = _resolve_classes(model, args.exclude_classes, None) if args.exclude_classes else None
 
         out_jsonl: Optional[Path] = Path(args.out_jsonl) if args.out_jsonl else None
         if out_jsonl is not None:
@@ -87,10 +124,12 @@ def cmd_predict(args: argparse.Namespace) -> int:
                 imgsz=args.imgsz,
                 device=args.device,
                 allowed_classes=allowed_classes,
+                exclude_classes=exclude_classes,
             ):
                 row = {
                     "path": str(s.source_path),
                     "has_detection": s.has_detection,
+                    "is_excluded": s.is_excluded,
                     "max_conf": s.max_conf,
                     "classes": list(s.classes),
                 }
@@ -110,7 +149,8 @@ def cmd_predict(args: argparse.Namespace) -> int:
 def cmd_collect(args: argparse.Namespace) -> int:
     try:
         model = load_model(args.model)
-        allowed_classes = args.classes if args.classes else None
+        allowed_classes = _resolve_classes(model, args.classes, None)
+        exclude_classes = _resolve_classes(model, args.exclude_classes, None) if args.exclude_classes else None
         conf = args.conf
         iou = args.iou
         imgsz = args.imgsz
@@ -182,11 +222,13 @@ def cmd_collect(args: argparse.Namespace) -> int:
                             imgsz=imgsz,
                             device=device,
                             allowed_classes=allowed_classes,
+                            exclude_classes=exclude_classes,
                         ):
                             try:
                                 row = {
                                     "path": str(s.source_path),
                                     "has_detection": s.has_detection,
+                                    "is_excluded": s.is_excluded,
                                     "max_conf": s.max_conf,
                                     "classes": list(s.classes),
                                 }
@@ -196,11 +238,12 @@ def cmd_collect(args: argparse.Namespace) -> int:
                                     print(
                                         f"[collect] {s.source_path.name}: "
                                         f"has_detection={s.has_detection} "
+                                        f"is_excluded={s.is_excluded} "
                                         f"max_conf={s.max_conf:.3f} "
                                         f"classes={list(s.classes)}"
                                     )
 
-                                if not s.has_detection:
+                                if s.is_excluded or not s.has_detection:
                                     continue
                                 
                                 total_kept += 1
@@ -254,11 +297,13 @@ def cmd_collect(args: argparse.Namespace) -> int:
                 imgsz=imgsz,
                 device=device,
                 allowed_classes=allowed_classes,
+                exclude_classes=exclude_classes,
             ):
                 try:
                     row = {
                         "path": str(s.source_path),
                         "has_detection": s.has_detection,
+                        "is_excluded": s.is_excluded,
                         "max_conf": s.max_conf,
                         "classes": list(s.classes),
                     }
@@ -268,11 +313,12 @@ def cmd_collect(args: argparse.Namespace) -> int:
                         print(
                             f"[collect] {s.source_path.name}: "
                             f"has_detection={s.has_detection} "
+                            f"is_excluded={s.is_excluded} "
                             f"max_conf={s.max_conf:.3f} "
                             f"classes={list(s.classes)}"
                         )
 
-                    if not s.has_detection:
+                    if s.is_excluded or not s.has_detection:
                         continue
                     kept += 1
                     dst = out_dir / s.source_path.name
@@ -327,10 +373,15 @@ def build_parser() -> argparse.ArgumentParser:
     pred.add_argument("--device", default=None)
     pred.add_argument(
         "--classes",
-        type=int,
         nargs="*",
         default=None,
-        help="Optional class ids to consider (e.g. --classes 0 3 for whatsapp+slack).",
+        help="Optional class ids or names to consider (e.g. --classes 0 3 or slack/*).",
+    )
+    pred.add_argument(
+        "--exclude-classes",
+        nargs="*",
+        default=None,
+        help="Optional class ids or names that, if they match the detection exactly, exclude the entire image (Logical Product).",
     )
     pred.add_argument("--out-jsonl", default=None, help="Write per-image detection summary to JSONL.")
     pred.set_defaults(func=cmd_predict)
@@ -349,10 +400,15 @@ def build_parser() -> argparse.ArgumentParser:
     col.add_argument("--device", default=None)
     col.add_argument(
         "--classes",
-        type=int,
         nargs="*",
         default=None,
-        help="Optional class ids to consider.",
+        help="Optional class ids or names to consider.",
+    )
+    col.add_argument(
+        "--exclude-classes",
+        nargs="*",
+        default=None,
+        help="Optional class ids or names that, if they match the detection exactly, exclude the entire image (Logical Product).",
     )
     col.add_argument(
         "--verbose",
