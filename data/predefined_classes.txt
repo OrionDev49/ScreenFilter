@@ -3,3 +3,4 @@ whatsapp
 telegram
 discord
 teams
+slack2
