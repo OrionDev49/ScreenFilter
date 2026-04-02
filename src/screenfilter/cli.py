@@ -6,7 +6,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from .yolo import iter_image_files, load_model, predict_summaries
 
@@ -74,6 +74,27 @@ def _resolve_classes(
     return final
 
 
+def _parse_exclude_groups(
+    model: Any,
+    group_strs: Optional[list[str]],
+) -> Optional[list[frozenset]]:
+    """Parse a list of comma-separated group strings into resolved frozensets.
+
+    Each string in *group_strs* represents one exclusion group whose class IDs
+    or names are separated by commas.  Returns a list of ``frozenset[int]``, or
+    ``None`` when *group_strs* is empty / not provided.
+    """
+    if not group_strs:
+        return None
+    groups = []
+    for gs in group_strs:
+        specs = [s.strip() for s in gs.split(",") if s.strip()]
+        ids = _resolve_classes(model, specs, None)
+        if ids is not None:
+            groups.append(frozenset(ids))
+    return groups if groups else None
+
+
 def cmd_train(args: argparse.Namespace) -> int:
     try:
         from ultralytics import YOLO  # type: ignore
@@ -108,7 +129,7 @@ def cmd_predict(args: argparse.Namespace) -> int:
             raise SystemExit(f"No images found under: {source}")
 
         allowed_classes = _resolve_classes(model, args.classes, None)
-        exclude_classes = _resolve_classes(model, args.exclude_classes, None) if args.exclude_classes else None
+        exclude_groups = _parse_exclude_groups(model, args.exclude_groups)
 
         out_jsonl: Optional[Path] = Path(args.out_jsonl) if args.out_jsonl else None
         if out_jsonl is not None:
@@ -124,7 +145,7 @@ def cmd_predict(args: argparse.Namespace) -> int:
                 imgsz=args.imgsz,
                 device=args.device,
                 allowed_classes=allowed_classes,
-                exclude_classes=exclude_classes,
+                exclude_groups=exclude_groups,
             ):
                 row = {
                     "path": str(s.source_path),
@@ -150,7 +171,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
     try:
         model = load_model(args.model)
         allowed_classes = _resolve_classes(model, args.classes, None)
-        exclude_classes = _resolve_classes(model, args.exclude_classes, None) if args.exclude_classes else None
+        exclude_groups = _parse_exclude_groups(model, args.exclude_groups)
         conf = args.conf
         iou = args.iou
         imgsz = args.imgsz
@@ -222,7 +243,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
                             imgsz=imgsz,
                             device=device,
                             allowed_classes=allowed_classes,
-                            exclude_classes=exclude_classes,
+                            exclude_groups=exclude_groups,
                         ):
                             try:
                                 row = {
@@ -297,7 +318,7 @@ def cmd_collect(args: argparse.Namespace) -> int:
                 imgsz=imgsz,
                 device=device,
                 allowed_classes=allowed_classes,
-                exclude_classes=exclude_classes,
+                exclude_groups=exclude_groups,
             ):
                 try:
                     row = {
@@ -378,10 +399,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional class ids or names to consider (e.g. --classes 0 3 or slack/*).",
     )
     pred.add_argument(
-        "--exclude-classes",
-        nargs="*",
+        "--exclude-group",
+        action="append",
+        dest="exclude_groups",
         default=None,
-        help="Optional class ids or names that, if they match the detection exactly, exclude the entire image (Logical Product).",
+        metavar="CLASSES",
+        help=(
+            "Comma-separated class ids/names forming one exclusion group. "
+            "An image is excluded if its detected class set EXACTLY matches this group. "
+            "Repeat the flag for multiple groups. "
+            "Example: --exclude-group 0,5 --exclude-group 5"
+        ),
     )
     pred.add_argument("--out-jsonl", default=None, help="Write per-image detection summary to JSONL.")
     pred.set_defaults(func=cmd_predict)
@@ -405,10 +433,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional class ids or names to consider.",
     )
     col.add_argument(
-        "--exclude-classes",
-        nargs="*",
+        "--exclude-group",
+        action="append",
+        dest="exclude_groups",
         default=None,
-        help="Optional class ids or names that, if they match the detection exactly, exclude the entire image (Logical Product).",
+        metavar="CLASSES",
+        help=(
+            "Comma-separated class ids/names forming one exclusion group. "
+            "An image is excluded if its detected class set EXACTLY matches this group. "
+            "Repeat the flag for multiple groups. "
+            "Example: --exclude-group 0,5 --exclude-group 5"
+        ),
     )
     col.add_argument(
         "--verbose",

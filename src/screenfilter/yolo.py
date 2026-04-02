@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Optional, Sequence
+from typing import Any, Iterable, Optional, Sequence, FrozenSet
 
 
 @dataclass(frozen=True)
@@ -44,7 +44,7 @@ def summarize_detection(
     result,
     conf_threshold: float,
     allowed_classes: Optional[Sequence[int]] = None,
-    exclude_classes: Optional[Sequence[int]] = None,
+    exclude_groups: Optional[Sequence[FrozenSet[int]]] = None,
 ) -> DetectionSummary:
     src = Path(result.path)
     if result.boxes is None or len(result.boxes) == 0:
@@ -55,29 +55,45 @@ def summarize_detection(
     clss = boxes.cls.detach().cpu().tolist()
 
     allowed = set(allowed_classes) if allowed_classes is not None else None
-    excluded_set = set(exclude_classes) if exclude_classes is not None else None
-    
+
     kept: list[tuple[float, int]] = []
+    raw_detections: list[tuple[float, int]] = []  # all boxes above conf (for excluded log)
     all_detected_above_conf = set()
 
     for c, k in zip(confs, clss):
         ci = int(k)
         if c < conf_threshold:
             continue
-        
+
         all_detected_above_conf.add(ci)
-        
+        raw_detections.append((float(c), ci))
+
         if allowed is not None and ci not in allowed:
             continue
         kept.append((float(c), ci))
 
-    # Logical Product: Exact match exclusion
+    # Exact-match exclusion: skip image if detected classes equal any exclusion group.
     is_excluded = False
-    if excluded_set is not None and all_detected_above_conf == excluded_set:
-        is_excluded = True
-        kept = []
+    if exclude_groups:
+        for group in exclude_groups:
+            if all_detected_above_conf == group:
+                is_excluded = True
+                kept = []
+                break
 
     if not kept:
+        # When excluded, preserve the actual detected classes/conf so verbose logs
+        # show what triggered the exclusion instead of 0.000 / [].
+        if is_excluded and raw_detections:
+            excl_max_conf = max(c for c, _ in raw_detections)
+            excl_classes = tuple(sorted(all_detected_above_conf))
+            return DetectionSummary(
+                source_path=src,
+                has_detection=False,
+                max_conf=excl_max_conf,
+                classes=excl_classes,
+                is_excluded=True,
+            )
         return DetectionSummary(source_path=src, has_detection=False, max_conf=0.0, classes=(), is_excluded=is_excluded)
 
     max_conf = max(c for c, _ in kept)
@@ -93,7 +109,7 @@ def predict_summaries(
     imgsz: int = 960,
     device: Optional[str] = None,
     allowed_classes: Optional[Sequence[int]] = None,
-    exclude_classes: Optional[Sequence[int]] = None,
+    exclude_groups: Optional[Sequence[FrozenSet[int]]] = None,
 ):
     import sys
     for p in sources:
@@ -114,7 +130,7 @@ def predict_summaries(
                 results[0],
                 conf_threshold=conf,
                 allowed_classes=allowed_classes,
-                exclude_classes=exclude_classes
+                exclude_groups=exclude_groups,
             )
         except Exception as e:
             sys.stderr.write(f"Error processing {p}: {e}\n")
