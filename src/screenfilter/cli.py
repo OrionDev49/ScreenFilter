@@ -184,16 +184,20 @@ def cmd_collect(args: argparse.Namespace) -> int:
         if getattr(args, "src_base", None):
             src_base = Path(args.src_base)
             dst_base = Path(args.dst_base)
-            mapping_str = args.map
             
             # Parse mapping table
             mapping = {}
-            for line in mapping_str.strip().split("\n"):
-                line = line.strip()
-                if not line or ":" not in line:
-                    continue
-                src, dst = line.split(":", 1)
-                mapping[src.strip()] = dst.strip()
+            if args.map:
+                # args.map is now a list since we use nargs="+"
+                for item in args.map:
+                    # Each item could contain one or more pairs separated by whitespace/newlines
+                    # This handles both --map 1:A 2:B and --map "1:A\n2:B"
+                    for line in item.strip().split("\n"):
+                        for pair in line.strip().split():
+                            if not pair or ":" not in pair:
+                                continue
+                            src, dst = pair.split(":", 1)
+                            mapping[src.strip()] = dst.strip()
 
             print(f"Starting multi-directory collection from {src_base} to {dst_base}...")
             
@@ -420,7 +424,7 @@ def build_parser() -> argparse.ArgumentParser:
     col.add_argument("--out", default=None, help="Output folder (single directory mode).")
     col.add_argument("--src-base", default=None, help="Source base directory (multi-directory mode).")
     col.add_argument("--dst-base", default=None, help="Destination base directory (multi-directory mode).")
-    col.add_argument("--map", default=None, help="Matching table $Src:$Dst (multi-directory mode).")
+    col.add_argument("--map", nargs="+", default=None, help="Matching table $Src:$Dst (space or newline separated).")
     col.add_argument("--date", default=None, help="Target date YYYY-MM-DD (multi-directory mode).")
     col.add_argument("--conf", type=float, default=0.25)
     col.add_argument("--iou", type=float, default=0.7)
